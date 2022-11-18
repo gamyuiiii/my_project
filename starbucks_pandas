@@ -1,0 +1,245 @@
+import pandas as pd
+
+# import data from csv
+survey = pd.read_csv("sample_data/starbucks_survey.csv")
+
+## clean column name
+clean_colname = ["date", "gender", "age", "career", "income", "often_visit", "order_type", "spend_time_per_visit", "nearest_shop", "membership", "product_purchase", "spend_amount", "rating_compare_quality", "rating_price", "rating_promotion", "rating_ambiance", "rating_wifi", "rating_service", "rating_meeting", "promo_channel", "royalty"]
+survey.columns = clean_colname
+
+# clean date
+survey['date'] = pd.to_datetime(survey['date']).dt.date
+
+# clean gender
+gender = survey['gender']
+gender_clean = []
+for gen in gender:
+    g = gen.lower()
+    gender_clean.append(g)
+survey['gender'] = gender_clean
+
+# clean age
+ages = survey['age']
+for i in range(len(ages)):
+     if ages[i] == 'Below 20':
+        ages[i] = 'teenager'
+
+     if ages[i] == 'From 20 to 29':
+        ages[i] = 'job_beginner'
+
+     if ages[i] == 'From 30 to 39':
+        ages[i] = 'middle_aged'
+
+     if ages[i] == '40 and above':
+        ages[i] = 'maturity'
+survey['age'] = ages
+
+# clean career
+career = survey['career']
+career_clean = []
+for car in career:
+    c = car.lower().replace("-", "_")
+    career_clean.append(c)
+survey['career'] = career_clean
+
+# clean income
+income = survey['income']
+for inc in range(len(income)):
+     if income[inc] == 'Less than RM25,000':
+       income[inc] = '<25,000'
+     if income[inc] == 'RM25,000 - RM50,000':
+       income[inc] = '25,000-50,000'
+     if income[inc] == 'RM50,000 - RM100,000':
+       income[inc] = '50,000-100,000'
+     if income[inc] == 'RM100,000 - RM150,000':
+       income[inc] = '100,000-150,000'
+     if income[inc] == 'More than RM150,000':
+       income[inc] = '>150,000'
+survey['income'] = income
+
+# clean often_visit
+visit = survey['often_visit']
+visit_clean = []
+for vit in visit:
+    v = vit.lower()
+    visit_clean.append(v)
+survey['often_visit'] = visit_clean
+
+# clean order_type
+survey['order_type'] = survey['order_type'].fillna('no_aws')
+order = survey['order_type']
+type_clean = []
+for ord in order:
+    temp = ord.lower().replace(" ", "_").replace("-", "_")
+    type_clean.append(temp)
+
+for i in range(len(type_clean)):
+     if type_clean[i] == 'never_buy':
+        type_clean[i] = 'never'
+
+     if type_clean[i] == 'i_dont_like_coffee':
+        type_clean[i] = 'never'
+
+     if type_clean[i] == 'never_':
+        type_clean[i] = 'never'
+survey['order_type'] = type_clean
+
+# clean spend_time_per_visit
+time = survey['spend_time_per_visit']
+for t in range(len(time)):
+     if time[t] == 'Below 30 minutes':
+        time[t] = '<30min'
+     if time[t] == 'Between 30 minutes to 1 hour':
+        time[t] = '30min-1hr'
+     if time[t] == 'Between 1 hour to 2 hours':
+        time[t] = '1-2hr'
+     if time[t] == 'Between 2 hours to 3 hours':
+        time[t] = '2-3hr'
+     if time[t] == 'More than 3 hours':
+        time[t] = '>3hr'
+survey['spend_time_per_visit'] = time
+
+# clean nearest_shop
+shop = survey['nearest_shop']
+for s in range(len(shop)):
+     if shop[s] == 'within 1km':
+        shop[s] = 'around_me'
+
+     if shop[s] == '1km - 3km':
+        shop[s] = 'not_even_close'
+
+     if shop[s] == 'more than 3km':
+        shop[s] = 'pretty_far'
+survey['nearest_shop'] = shop
+
+# clean membership
+member = survey['membership']
+member_clean = []
+for mem in member:
+    if mem == 'Yes':
+       member_clean.append(1)
+    else:
+       member_clean.append(0)
+survey['membership'] = member_clean
+
+# clean spend_amount
+amount = survey['spend_amount']
+for a in range(len(amount)):
+     if amount[a] == 'Zero':
+        amount[a] = 'no_spending'
+
+     if amount[a] == 'Less than RM20':
+        amount[a] = '<20'
+
+     if amount[a] == 'Around RM20 - RM40':
+        amount[a] = '20-40'
+
+     if amount[a] == 'More than RM40':
+        amount[a] = '>40'
+survey['spend_amount'] = amount
+
+# clean royalty
+royal = survey['royalty']
+royal_clean = []
+for r in royal:
+    if r == 'Yes':
+       royal_clean.append(1)
+    else:
+       royal_clean.append(0)
+survey['royalty'] = royal_clean
+
+# clean product_purchase
+items_list = list(set(survey['product_purchase']))
+items = []
+for item in items_list:
+    it = str(item).split(';')
+    for i in it:
+        items.append(i)
+
+items = list(set(items))
+items_clean = []
+for i in items:
+     if i not in ['never', 'Nothing ', 'Never', 'Never buy any']:
+        items_clean.append(i)
+
+survey_1 = pd.DataFrame()
+data = survey['product_purchase']
+x = 0
+pastries = []
+jaws_chip = []
+cold_drinks = []
+coffee = []
+juices = []
+cake = []
+sandwiches = []
+items_list = [cold_drinks, pastries, juices, cake, coffee, jaws_chip, sandwiches]
+for i in items_list:
+    while x < 7:
+        for d in data:
+            if items_clean[x] in d.split(';'):
+               items_list[x].append(1)
+            else:
+                items_list[x].append(0)
+        x = x + 1
+survey_1['pastries'] = pastries
+survey_1['jaws_chip'] = jaws_chip
+survey_1['cold_drinks'] = cold_drinks
+survey_1['coffee'] = coffee
+survey_1['juices'] = juices
+survey_1['cake'] = cake
+survey_1['sandwiches'] = sandwiches
+
+final = pd.concat([survey, survey_1], axis = 1)
+
+# clean promo_channel
+survey['promo_channel'] = survey['promo_channel'].fillna('no_aws')
+promo_list = list(set(survey['promo_channel']))
+promo = []
+for pro in promo_list:
+    pr = str(pro).split(';')
+    for p in pr:
+        promo.append(p)
+promo = list(set(promo))
+
+promo_clean = []
+for pro in promo:
+     if pro not in ['Never hear', 'no_aws']:
+        promo_clean.append(pro)
+
+survey_2 = pd.DataFrame()
+data_promo = survey['promo_channel']
+x = 0
+social_media = []
+friends = []
+emails = []
+deal_sites = []
+website_apps = []
+store_displays = []
+application_offer = []
+billboards = []
+promo_detail = [deal_sites, application_offer, website_apps, billboards, social_media, store_displays, emails, friends]
+
+for pro in promo_list:
+    while x < 8:
+        for dat in data_promo:
+            if promo_clean[x] in dat.split(';'):
+               promo_detail[x].append(1)
+            else:
+                promo_detail[x].append(0)
+        x = x + 1
+
+survey_2['social_media'] = social_media
+survey_2['friends'] = friends
+survey_2['emails'] = emails
+survey_2['deal_sites'] = deal_sites
+survey_2['website_apps'] = website_apps
+survey_2['store_displays'] = store_displays
+survey_2['application_offer'] = application_offer
+survey_2['billboards'] = billboards
+
+final = pd.concat([final, survey_2], axis = 1)
+
+final = final.drop(['product_purchase', 'promo_channel'], axis = 1)
+
+# export csv file
+final.to_csv("starbucks_survey_clean.csv", index = False)
