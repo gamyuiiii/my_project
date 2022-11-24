@@ -1,10 +1,12 @@
 import pandas as pd
+import numpy as np
+from collections import Counter
 
 # import data from csv
 survey = pd.read_csv("sample_data/starbucks_survey.csv")
 
 ## clean column name
-clean_colname = ["date", "gender", "age", "career", "income", "often_visit", "order_type", "spend_time_per_visit", "nearest_shop", "membership", "product_purchase", "spend_amount", "rating_compare_quality", "rating_price", "rating_promotion", "rating_ambiance", "rating_wifi", "rating_service", "rating_meeting", "promo_channel", "royalty"]
+clean_colname = ["date", "gender", "age", "career", "income", "often_visit", "order_type", "spend_time_per_visit", "nearest_shop", "membership", "product_purchase", "spend_amount", "rating_compare_quality", "rating_price", "rating_promotion", "rating_ambiance", "rating_wifi", "rating_service", "rating_meeting", "promo_channel", "loyalty"]
 survey.columns = clean_colname
 
 # clean date
@@ -138,15 +140,15 @@ for a in range(len(amount)):
         amount[a] = '>40'
 survey['spend_amount'] = amount
 
-# clean royalty
-royal = survey['royalty']
-royal_clean = []
-for r in royal:
+# clean loyalty
+loyal = survey['loyalty']
+loyal_clean = []
+for r in loyal:
     if r == 'Yes':
-       royal_clean.append(1)
+       loyal_clean.append(1)
     else:
-       royal_clean.append(0)
-survey['royalty'] = royal_clean
+       loyal_clean.append(0)
+survey['loyalty'] = loyal_clean
 
 # clean product_purchase
 items_list = list(set(survey['product_purchase']))
@@ -161,29 +163,40 @@ items_clean = []
 for i in items:
      if i not in ['never', 'Nothing ', 'Never', 'Never buy any']:
         items_clean.append(i)
+items_clean_2 = []
+for i in items_clean:
+    temp = i.lower().replace(" ", "")
+    items_clean_2.append(temp)
+items_clean_2.sort()
 
 survey_1 = pd.DataFrame()
-data = survey['product_purchase']
+data_temp = survey['product_purchase']
 x = 0
 pastries = []
-jaws_chip = []
-cold_drinks = []
+jawschip = []
+colddrinks = []
 coffee = []
 juices = []
 cake = []
 sandwiches = []
-items_list = [cold_drinks, pastries, juices, cake, coffee, jaws_chip, sandwiches]
+items_list = [cake, coffee, colddrinks, jawschip, juices, pastries, sandwiches]
+
+data = []
+for d in data_temp:
+    dd = d.lower().replace(" ", "")
+    data.append(dd)
+
 for i in items_list:
     while x < 7:
         for d in data:
-            if items_clean[x] in d.split(';'):
+            if items_clean_2[x] in d.split(';'):
                items_list[x].append(1)
             else:
                 items_list[x].append(0)
         x = x + 1
 survey_1['pastries'] = pastries
-survey_1['jaws_chip'] = jaws_chip
-survey_1['cold_drinks'] = cold_drinks
+survey_1['jaws_chip'] = jawschip
+survey_1['cold_drinks'] = colddrinks
 survey_1['coffee'] = coffee
 survey_1['juices'] = juices
 survey_1['cake'] = cake
@@ -206,40 +219,70 @@ for pro in promo:
      if pro not in ['Never hear', 'no_aws']:
         promo_clean.append(pro)
 
+promo_clean_2 = []
+for i in promo_clean:
+    temp = i.lower().replace(" ", "")
+    promo_clean_2.append(temp)
+promo_clean_2.sort()
+
+promo_clean_3 = []
+for i in promo_clean_2:
+    ii = i[0:3]
+    promo_clean_3.append(ii)
+
 survey_2 = pd.DataFrame()
-data_promo = survey['promo_channel']
+data_promo_temp = survey['promo_channel']
 x = 0
-social_media = []
-friends = []
-emails = []
-deal_sites = []
-website_apps = []
-store_displays = []
-application_offer = []
-billboards = []
-promo_detail = [deal_sites, application_offer, website_apps, billboards, social_media, store_displays, emails, friends]
+app = []
+bil = []
+dea = []
+ema = []
+ins = []
+soc = []
+sta = []
+thr = []
+promo_list = [app, bil, dea, ema, ins, soc, sta, thr]
 
-for pro in promo_list:
+data_promo = []
+for d in data_promo_temp:
+    dd = d.lower().replace(" ","")
+    data_promo.append(dd)
+
+data_promo_2 = []
+for data in data_promo:
+    d = data.split(';')
+    if len(d) > 1:
+        temp = []
+        for i in d:
+                ii = i[0:3]
+                temp.append(ii)
+        temp_2 = ';'.join(temp)
+        data_promo_2.append(temp_2)
+    else:
+        for i in d:
+            ii = i[0:3]
+            data_promo_2.append(ii)
+
+for pro in promo_list :
     while x < 8:
-        for dat in data_promo:
-            if promo_clean[x] in dat.split(';'):
-               promo_detail[x].append(1)
+        for d in data_promo_2:
+            if promo_clean_3[x] in d.split(';'):
+               promo_list[x].append(1)
             else:
-                promo_detail[x].append(0)
+               promo_list[x].append(0)
         x = x + 1
-
-survey_2['social_media'] = social_media
-survey_2['friends'] = friends
-survey_2['emails'] = emails
-survey_2['deal_sites'] = deal_sites
-survey_2['website_apps'] = website_apps
-survey_2['store_displays'] = store_displays
-survey_2['application_offer'] = application_offer
-survey_2['billboards'] = billboards
+survey_2['social_media'] = soc
+survey_2['friends'] = thr
+survey_2['emails'] = ema
+survey_2['deal_sites'] = dea
+survey_2['website_apps'] = sta
+survey_2['store_displays'] = ins
+survey_2['application_offer'] = app
+survey_2['billboards'] = bil
 
 final = pd.concat([final, survey_2], axis = 1)
 
 final = final.drop(['product_purchase', 'promo_channel'], axis = 1)
 
-# export csv file
+#export csv file
 final.to_csv("starbucks_survey_clean.csv", index = False)
